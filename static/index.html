@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>IPMI Manager</title>
   <link href="bootstrap.min.css" rel="stylesheet">
+  <!-- bootstrap-table styles -->
+   <link rel="stylesheet" href="bootstrap-table.min.css">
   <script src="jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -22,8 +24,15 @@
 
   <button id="addBtn" class="btn btn-primary mb-3" style="display:none;">Add new server</button>
   <div id="formContainer" class="mb-3" style="display:none;"></div>
-  <div id="serversContainer"></div>
+  <div id="serversContainer">
+    <!-- table will be injected here -->
+  </div>
 </div>
+<!-- bootstrap-table script -->
+ 
+  <script src="bootstrap.bundle.min.js"></script>
+ <script src="bootstrap-table.min.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>

@@ -27,38 +27,60 @@ $(function() {
         });
     }
     function updateServerStatus(name, status) {
-        var rowClass = status.toLowerCase().includes('on') ? 'table-success' : (status.toLowerCase().includes('off') ? 'table-danger' : 'table-warning');
-        var $row = $('table tbody tr').filter(function() {
-            return $(this).find('td').eq(0).text() === name;
+        // update underlying table data via bootstrap-table API
+        $('#serversTable').bootstrapTable('updateByUniqueId', {
+            id: name,
+            row: { status: status }
         });
-        $row.attr('class', rowClass);
-        $row.find('td').eq(2).text(status);
+        // optionally adjust row class via refreshOptions
+        var rowClass = status.toLowerCase().includes('on') ? 'table-success' : (status.toLowerCase().includes('off') ? 'table-danger' : 'table-warning');
+        $('#serversTable').bootstrapTable('updateByUniqueId', {
+            id: name,
+            row: { _rowClass: rowClass }
+        });
     }
     function renderTable(servers, statuses) {
         if ($.isEmptyObject(servers)) {
             $('#serversContainer').html('<p>No servers configured.</p>');
             return;
         }
-        var html = '<table class="table table-bordered"><thead class="table-light"><tr><th>Name</th><th>Host</th><th>Status</th>' +
-                   (loggedIn ? '<th>Actions</th>' : '') + '</tr></thead><tbody>';
+        // transform servers map into array of rows
+        var rows = [];
         $.each(servers, function(name, info) {
-            var stat = statuses[name] || 'loading...';
-            var rowClass = 'table-secondary';
-            html += '<tr class="' + rowClass + '">';
-            html += '<td>' + name + '</td>';
-            html += '<td>' + info.host + '</td>';
-            html += '<td>' + stat + '</td>';
-            if (loggedIn) {
-                html += '<td>' +
-                        '<button class="btn btn-sm btn-success powerBtn" data-name="' + name + '" data-action="on">On</button> ' +
-                        '<button class="btn btn-sm btn-danger powerBtn" data-name="' + name + '" data-action="off">Off</button> ' +
-                        //'<button class="btn btn-sm btn-outline-secondary removeBtn" data-name="' + name + '">Remove</button>' +
-                        '</td>';
-            }
-            html += '</tr>';
+            rows.push({
+                name: name,
+                host: info.host,
+                status: statuses[name] || 'loading...',
+                _rowClass: 'table-secondary'
+            });
         });
-        html += '</tbody></table>';
-        $('#serversContainer').html(html);
+        // column definitions for bootstrap-table
+        var columns = [
+            { field: 'name', title: 'Name', sortable: true, uniqueId: true },
+            { field: 'host', title: 'Host', sortable: true },
+            { field: 'status', title: 'Status', sortable: true }
+        ];
+        if (loggedIn) {
+            columns.push({
+                field: 'actions',
+                title: 'Actions',
+                formatter: function(value, row) {
+                    return '<button class="btn btn-sm btn-success powerBtn" data-name="' + row.name + '" data-action="on">On</button> '
+                         + '<button class="btn btn-sm btn-danger powerBtn" data-name="' + row.name + '" data-action="off">Off</button>';
+                }
+            });
+        }
+        $('#serversContainer').html('<div class="table-responsive"><table id="serversTable"></table></div>');
+        $('#serversTable').bootstrapTable({
+            data: rows,
+            columns: columns,
+            search: true,
+            pagination: true,
+            uniqueId: 'name',
+            rowStyle: function(row, index) {
+                return { classes: row._rowClass || '' };
+            }
+        });
     }
     function showAddForm() {
         var form = '<div class="card p-3"><h4>Add Server</h4>' +
